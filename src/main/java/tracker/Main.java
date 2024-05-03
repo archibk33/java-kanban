@@ -26,10 +26,10 @@ public class Main {
         System.out.println("Задачи: " + taskManager.getAllTasks());
         System.out.println("Эпики: " + taskManager.getAllEpics());
         System.out.println("Подзадачи: " + taskManager.getAllSubtasks());
-        System.out.println("Задача 1 по id: " + taskManager.getTaskOnId(task1.getId()));
-        System.out.println("Задача 2 по id: " + taskManager.getTaskOnId(task2.getId()));
-        System.out.println("Подзадачи эпика 1: " + taskManager.getSubtasksOnEpic(epic1.getId()));
-        System.out.println("Подзадачи эпика 2: " + taskManager.getSubtasksOnEpic(epic2.getId()));
+        System.out.println("Задача 1 по id: " + taskManager.getTaskById(task1.getId()));
+        System.out.println("Задача 2 по id: " + taskManager.getTaskById(task2.getId()));
+        System.out.println("Подзадачи эпика 1: " + taskManager.getSubtasksByEpic(epic1.getId()));
+        System.out.println("Подзадачи эпика 2: " + taskManager.getSubtasksByEpic(epic2.getId()));
 
         // Изменение статусов и проверка
         task1.setStatus(Status.DONE);

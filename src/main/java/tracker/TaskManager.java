@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TaskManager {
     private final Map<Integer, Task> tasks = new HashMap<>();
     private final Map<Integer, Epic> epics = new HashMap<>();
     private final Map<Integer, Subtask> subtasks = new HashMap<>();
-    private int nextId = 1;
+
+    //TODO: 1) Я погуглил + поспрашивал у знакомых про атомарный счетчик. Его можно использовать на проектах? 2) ById - я поменял и вдругих местах. Спасибо большое за ревью :)
+    private AtomicInteger nextId = new AtomicInteger(1);
 
     public void addNewTask(Task task) {
         int id = task.getId();
@@ -39,13 +42,10 @@ public class TaskManager {
     }
 
     public int generateUniqueId() {
-        while (tasks.containsKey(nextId) || epics.containsKey(nextId) || subtasks.containsKey(nextId)) {
-            nextId++;
-        }
-        return nextId;
+        return nextId.getAndIncrement();
     }
 
-    public Task getTaskOnId(int id) {
+    public Task getTaskById(int id) {
         if (tasks.containsKey(id)) {
             return tasks.get(id);
         } else if (subtasks.containsKey(id)) {
@@ -69,7 +69,7 @@ public class TaskManager {
         subtasks.clear();
     }
 
-    public List<Subtask> getSubtasksOnEpic(int epicId) {
+    public List<Subtask> getSubtasksByEpic(int epicId) {
         Epic epic = epics.get(epicId);
         return epic != null ? new ArrayList<>(epic.getSubtasks()) : new ArrayList<>();
     }

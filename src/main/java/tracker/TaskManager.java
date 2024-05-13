@@ -12,6 +12,7 @@ public class TaskManager {
     private final Map<Integer, Subtask> subtasks = new HashMap<>();
 
     //TODO: 1) Я погуглил + поспрашивал у знакомых про атомарный счетчик. Его можно использовать на проектах? 2) ById - я поменял и вдругих местах. Спасибо большое за ревью :)
+    //TODO: Check link on git
     private AtomicInteger nextId = new AtomicInteger(1);
 
     public void addNewTask(Task task) {

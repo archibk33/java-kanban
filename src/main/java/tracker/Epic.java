@@ -4,9 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Epic extends Task {
+
     private List<Subtask> subtasks = new ArrayList<>();
 
-    public Epic(int i, String title, String description, Status status) {
+    public Epic(String title, String description, Status status) {
         super(title, description, status);
     }
 
@@ -18,4 +19,5 @@ public class Epic extends Task {
         this.subtasks.add(subtask);
     }
 }
+
 

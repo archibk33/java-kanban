@@ -3,6 +3,7 @@ package main.java.tracker;
 import java.util.Objects;
 
 public class Task {
+
     private String title;
     private String description;
     private int id;
@@ -13,6 +14,14 @@ public class Task {
         this.title = title;
         this.description = description;
         this.status = status;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public int getId() {

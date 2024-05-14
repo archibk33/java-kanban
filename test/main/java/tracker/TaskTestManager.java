@@ -1,32 +1,27 @@
 package main.java.tracker;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 import main.java.tracker.util.Managers;
 
+import java.lang.reflect.Executable;
 import java.util.List;
-
 
 class TaskTestManager {
     private TaskManager taskManager;
     private HistoryManager historyManager;
 
-    /**
-     * Подготовка объектов перед каждым тестом.
-     */
     @BeforeEach
+    @DisplayName("Подготовка объектов перед каждым тестом")
     void setUp() {
         taskManager = Managers.getDefault();
         historyManager = Managers.getDefaultHistory();
     }
 
-    /**
-     * Тест на проверку равенства задач с одинаковыми ID.
-     */
     @Test
+    @DisplayName("Проверка равенства задач с одинаковыми ID")
     void tasksShouldBeEqualIfIdIsEqual() {
         Task task1 = new Task("Заголовок задачи 1", "Описание задачи 1", Status.NEW);
         task1.setId(1);
@@ -35,10 +30,8 @@ class TaskTestManager {
         assertEquals(task1, task2);
     }
 
-    /**
-     * Тест на проверку, что эпик не может быть своей подзадачей.
-     */
     @Test
+    @DisplayName("Эпик не может быть своей подзадачей")
     void epicCannotBeItsOwnSubtask() {
         Epic epic = new Epic("Заголовок эпика", "Описание эпика", Status.NEW);
         try {
@@ -48,10 +41,8 @@ class TaskTestManager {
         }
     }
 
-    /**
-     * Тест на проверку, что подзадача не может быть добавлена в список подзадач эпика, если она уже связана с этим эпиком.
-     */
     @Test
+    @DisplayName("Подзадача не может быть добавлена в список подзадач эпика, если она уже связана с этим эпиком")
     void subtaskCannotHaveItselfAsEpic() {
         Epic epic = new Epic("Заголовок эпика", "Описание эпика", Status.NEW);
         Subtask subtask = new Subtask("Заголовок подзадачи", "Описание подзадачи", Status.NEW, epic);
@@ -62,29 +53,23 @@ class TaskTestManager {
         }
     }
 
-    /**
-     * Тест на проверку, что класс Managers возвращает инициализированные экземпляры менеджеров.
-     */
     @Test
+    @DisplayName("Managers возвращает инициализированные экземпляры менеджеров")
     void utilityClassShouldReturnInitializedManagers() {
         assertNotNull(historyManager);
         assertNotNull(taskManager);
     }
 
-    /**
-     * Тест на проверку, что TaskManager может добавлять задачи и находить их по ID.
-     */
     @Test
+    @DisplayName("TaskManager может добавлять задачи и находить их по ID")
     void taskManagerShouldAddTasksAndFindThemById() {
         Task task = new Task("Заголовок", "Описание", Status.NEW);
         taskManager.addNewTask(task);
         assertEquals(task, taskManager.getTaskById(task.getId()));
     }
 
-    /**
-     * Тест на проверку, что задачи с заданным и сгенерированным ID не конфликтуют внутри TaskManager.
-     */
     @Test
+    @DisplayName("Задачи с заданным и сгенерированным ID не конфликтуют внутри TaskManager")
     void tasksWithGivenAndGeneratedIdShouldNotConflict() {
         Task task1 = new Task("Заголовок", "Описание", Status.NEW);
         task1.setId(10);
@@ -94,10 +79,8 @@ class TaskTestManager {
         assertNotEquals(task1.getId(), task2.getId());
     }
 
-    /**
-     * Тест на проверку, что задача остается неизменной после добавления в TaskManager.
-     */
     @Test
+    @DisplayName("Задача остается неизменной после добавления в TaskManager")
     void taskShouldRemainUnchangedWhenAddedToManager() {
         Task originalTask = new Task("Заголовок", "Описание", Status.NEW);
         Task taskToAdd = new Task("Заголовок", "Описание", Status.NEW);
@@ -107,10 +90,8 @@ class TaskTestManager {
         assertEquals(originalTask.getStatus(), taskToAdd.getStatus());
     }
 
-    /**
-     * Тест на проверку, что HistoryManager сохраняет версию задачи в момент её добавления.
-     */
     @Test
+    @DisplayName("HistoryManager сохраняет версию задачи в момент её добавления")
     void historyManagerShouldPreserveTaskVersion() {
         Task task = new Task("Заголовок", "Описание", Status.NEW);
         historyManager.add(task);
@@ -119,28 +100,25 @@ class TaskTestManager {
         assertNotEquals(history.get(0).getStatus(), task.getStatus());
     }
 
-    /**
-     * Тест на проверку, что при попытке добавить задачу с уже существующим ID будет выброшено исключение.
-     */
     @Test
+    @DisplayName("При попытке добавить задачу с уже существующим ID выбрасывается исключение")
     void shouldThrowExceptionWhenAddingTaskWithDuplicateId() {
         Task task1 = new Task("Задача 1", "Описание", Status.NEW);
         taskManager.addNewTask(task1);
-
         Task task2 = new Task("Задача 2", "Описание", Status.NEW);
         task2.setId(task1.getId());
-
-        try {
-            taskManager.addNewTask(task2);
-        } catch (IllegalArgumentException e) {
-            // Expected exception
-        }
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+           taskManager.addNewTask(task2);
+        });
+        String expectedMessage = "Задача с таким ID уже существует";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
     }
 
-    /**
-     * Тест на проверку, что у эпика нет подзадач.
-     */
+
+
     @Test
+    @DisplayName("У эпика нет подзадач")
     void shouldReturnEmptyListWhenNoSubtasksForEpic() {
         Epic epic = new Epic("Эпик", "Описание", Status.NEW);
         taskManager.addNewTask(epic);
@@ -148,10 +126,8 @@ class TaskTestManager {
         assertTrue(subtasks.isEmpty());
     }
 
-    /**
-     * Тест на проверку, что в истории сохраняется порядок задач.
-     */
     @Test
+    @DisplayName("В истории сохраняется порядок задач")
     void shouldPreserveTaskOrderInHistory() {
         Task task1 = new Task("Задача 1", "Описание", Status.NEW);
         Task task2 = new Task("Задача 2", "Описание", Status.NEW);
@@ -164,10 +140,8 @@ class TaskTestManager {
         assertEquals(task2.getId(), history.get(1).getId());
     }
 
-    /**
-     * Тест на проверку, что две подзадачи считаются равными, если у них одинаковые ID.
-     */
     @Test
+    @DisplayName("Две подзадачи считаются равными, если у них одинаковые ID")
     void subtasksShouldBeEqualIfIdIsEqual() {
         Epic epic = new Epic("Заголовок эпика", "Описание эпика", Status.NEW);
         Subtask subtask1 = new Subtask("Заголовок подзадачи", "Описание подзадачи", Status.NEW, epic);
@@ -175,10 +149,8 @@ class TaskTestManager {
         assertEquals(subtask1, subtask2);
     }
 
-    /**
-     * Тест на проверку, что два эпика считаются равными, если у них одинаковые ID.
-     */
     @Test
+    @DisplayName("Два эпика считаются равными, если у них одинаковые ID")
     void epicsShouldBeEqualIfIdIsEqual() {
         Epic epic1 = new Epic("Заголовок эпика", "Описание эпика", Status.NEW);
         Epic epic2 = new Epic("Другой заголовок эпика", "Другое описание", Status.IN_PROGRESS);

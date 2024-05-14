@@ -1,12 +1,17 @@
 package main.java.tracker.managers;
 
-import main.java.tracker.*;
+import main.java.tracker.Subtask;
+import main.java.tracker.Task;
+import main.java.tracker.Epic;
+import main.java.tracker.TaskManager;
+import main.java.tracker.HistoryManager;
+import main.java.tracker.Status;
 import main.java.tracker.util.Managers;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class InMemoryTaskManager implements TaskManager {
 
@@ -14,7 +19,7 @@ public class InMemoryTaskManager implements TaskManager {
     private final Map<Integer, Epic> epics = new HashMap<>();
     private final Map<Integer, Subtask> subtasks = new HashMap<>();
     private final HistoryManager historyManager = Managers.getDefaultHistory();
-    private final AtomicInteger nextId = new AtomicInteger(0);
+    private int nextId = 1;
 
     @Override
     public void addNewTask(Task task) {
@@ -25,19 +30,34 @@ public class InMemoryTaskManager implements TaskManager {
         } else if (!isIdUnique(id)) {
             throw new IllegalArgumentException("Задача с таким ID уже существует! -  " + id);
         }
+        addTaskByType(task);
+    }
+
+    private void addTaskByType(Task task) {
         if (task instanceof Epic) {
-            epics.put(id, (Epic) task);
+            addEpic((Epic) task);
         } else if (task instanceof Subtask) {
-            Subtask subtask = (Subtask) task;
-            subtasks.put(id, subtask);
-            Epic parentEpic = subtask.getParentEpic();
-            if (parentEpic != null) {
-                parentEpic.addSubtask(subtask);
-                updateEpicStatus(parentEpic);
-            }
+            addSubtask((Subtask) task);
         } else {
-            tasks.put(id, task);
+            addSimpleTask(task);
         }
+    }
+
+    private void addEpic(Epic epic) {
+        epics.put(epic.getId(), epic);
+    }
+
+    private void addSubtask(Subtask subtask) {
+        subtasks.put(subtask.getId(), subtask);
+        Epic parentEpic = subtask.getParentEpic();
+        if (parentEpic != null) {
+            parentEpic.addSubtask(subtask);
+            updateEpicStatus(parentEpic);
+        }
+    }
+
+    private void addSimpleTask(Task task) {
+        tasks.put(task.getId(), task);
     }
 
     public boolean isIdUnique(int id) {
@@ -45,7 +65,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     public int generateUniqueId() {
-        return nextId.getAndIncrement();
+        return nextId++;
     }
 
     @Override
@@ -87,15 +107,26 @@ public class InMemoryTaskManager implements TaskManager {
     public void updateTask(Task task) {
         int id = task.getId();
         if (task instanceof Epic) {
-            epics.put(id, (Epic) task);
-            updateEpicStatus((Epic) task);
+            updateEpic((Epic) task);
         } else if (task instanceof Subtask) {
-            Subtask subtask = (Subtask) task;
-            subtasks.put(id, subtask);
-            updateEpicStatus(subtask.getParentEpic());
+            updateSubtask((Subtask) task);
         } else {
-            tasks.put(id, task);
+            updateSimpleTask(task);
         }
+    }
+
+    private void updateEpic(Epic epic) {
+        epics.put(epic.getId(), epic);
+        updateEpicStatus(epic);
+    }
+
+    private void updateSubtask(Subtask subtask) {
+        subtasks.put(subtask.getId(), subtask);
+        updateEpicStatus(subtask.getParentEpic());
+    }
+
+    private void updateSimpleTask(Task task) {
+        tasks.put(task.getId(), task);
     }
 
     private void updateEpicStatus(Epic epic) {
@@ -135,19 +166,27 @@ public class InMemoryTaskManager implements TaskManager {
         if (tasks.containsKey(id)) {
             tasks.remove(id);
         } else if (subtasks.containsKey(id)) {
-            Subtask subtask = subtasks.remove(id);
-            Epic parentEpic = subtask.getParentEpic();
-            if (parentEpic != null) {
-                parentEpic.getSubtasks().remove(subtask);
-                updateEpicStatus(parentEpic);
-            }
+            deleteSubtask(id);
         } else if (epics.containsKey(id)) {
-            Epic epic = epics.remove(id);
-            for (Subtask subtask : epic.getSubtasks()) {
-                subtasks.remove(subtask.getId());
-            }
-            epic.getSubtasks().clear();
+            deleteEpic(id);
         }
+    }
+
+    private void deleteSubtask(int id) {
+        Subtask subtask = subtasks.remove(id);
+        Epic parentEpic = subtask.getParentEpic();
+        if (parentEpic != null) {
+            parentEpic.getSubtasks().remove(subtask);
+            updateEpicStatus(parentEpic);
+        }
+    }
+
+    private void deleteEpic(int id) {
+        Epic epic = epics.remove(id);
+        for (Subtask subtask : epic.getSubtasks()) {
+            subtasks.remove(subtask.getId());
+        }
+        epic.getSubtasks().clear();
     }
 
     @Override
